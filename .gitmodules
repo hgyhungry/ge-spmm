@@ -1,0 +1,9 @@
+[submodule "pytorch-custom/pytorch_geometric"]
+	path = pytorch-custom/pytorch_geometric
+	url = https://github.com/rusty1s/pytorch_geometric.git
+[submodule "dgl-custom/dgl"]
+	path = dgl-custom/dgl
+	url = https://github.com/dmlc/dgl.git
+[submodule "gunrock-custom/gunrock"]
+	path = gunrock-custom/gunrock
+	url = https://github.com/gunrock/gunrock.git
