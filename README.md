@@ -51,6 +51,9 @@ source test.sh
 Results are written to gr_test.txt
 
 ## DGL integration
+
+**Prerequisites** CUDA toolkit 10.1  PyTorch 1.4
+
 GE-SpMM can be integrated to [DGL](dgl.ai). When cloning this repo, pass --recursive flag to automatically pull DGL repo. First build DGL from source. Instructions are also in [this tutorial](https://docs.dgl.ai/install/index.html#install-from-source).
 ```
 cd $(this-repo)/dgl-custom/dgl
@@ -83,6 +86,9 @@ python setup.py install --user
 Then you can run the same tests again to see differences of pytorch profiling report.
 
 ## PyTorch extension
+
+**Prerequisites** CUDA toolkit 10.1  PyTorch 1.4
+
 We also wrap GE-SpMM to be a pytorch custom op. The operator is compiled in a JIT way and can be called in python code. We use this to substitute MessagePassing propogate step provided in [pyg](https://github.com/rusty1s/pytorch_geometric) and test performance gain.
 ```
 cd $(this-repo)/pytorch-custom
