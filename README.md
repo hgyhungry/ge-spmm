@@ -90,6 +90,16 @@ Then you can run the same tests again to see differences of pytorch profiling re
 **Prerequisites** CUDA toolkit 10.1  PyTorch 1.4
 
 We also wrap GE-SpMM to be a pytorch custom op. The operator is compiled in a JIT way and can be called in python code. We use this to substitute MessagePassing propogate step provided in [pyg](https://github.com/rusty1s/pytorch_geometric) and test performance gain.
+### Build PyG baseline
+```
+pip install torch-scatter==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-1.4.0.html
+pip install torch-sparse==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-1.4.0.html
+pip install torch-cluster==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-1.4.0.html
+pip install torch-spline-conv==latest+${CUDA} -f https://pytorch-geometric.com/whl/torch-1.4.0.html
+cd $(this-repo)/pytorch-custom/pytorch_geometric
+python setup.py install --user
+```
+### Run tests
 ```
 cd $(this-repo)/pytorch-custom
 
