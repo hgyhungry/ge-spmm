@@ -10,6 +10,6 @@
 [submodule "merge-spmm"]
 	path = merge-spmm
 	url = https://github.com/owensgroup/merge-spmm.git
-[submodule "minigun-test/minigun"]
-	path = minigun-test/minigun
-	url = https://github.com/dglai/minigun.git
+[submodule "gunrock-test/gunrock"]
+	path = gunrock-test/gunrock
+	url = https://github.com/gunrock/gunrock.git
