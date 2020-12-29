@@ -1,4 +1,12 @@
-# GE-SpMM: General-purposed Efficient Sparse Matrix-Matrix Multiplication on GPU
+# GE-SpMM: General-purposed Sparse Matrix-Matrix Multiplication on GPUs for Graph Neural Networks
+
+Guyue Huang\*, Guohao Dai, Yu Wang and Huazhong Yang
+
+Tsinghua University
+
+\*hguyue1@outlook.com
+
+Accepeted to SC2020.
 
 ## Abstract
 **GE-SpMM** is a fast CSR-based CUDA kernel of sparse-dense matrix multiplication (SpMM), designed to accelerate GNN applications.
