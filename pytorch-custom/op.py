@@ -7,17 +7,23 @@ spmm = load(name='spmm', sources=['spmm.cpp', 'spmm_kernel.cu'], verbose=True)
 
 class SPMMFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, rowptr, colind, colptr, rowind, feat):
-        out = spmm.csr_spmm(rowptr, colind, feat)
+    def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr):
+        out = spmm.csr_spmm(rowptr, colind, feat) #should be (rowptr, colind, edge_weight_csr, grad_out)
 
-        ctx.backward_csc = (colptr, rowind)
+        ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr)
         return out
     
     @staticmethod
     def backward(ctx, grad_out):
-        colptr, rowind = ctx.backward_csc
-        grad_feat = spmm.csr_spmm(colptr, rowind, grad_out)
-        return None, None, None, None, grad_feat
+        colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
+        #
+        # edge_weight_csc = spmm.value_csr_to_csc(edge_weight_csr)
+        #
+        grad_feat = spmm.csr_spmm(colptr, rowind, grad_out) #should be (colptr, rowind, edge_weight_csc, grad_out)
+        #
+        # grad_edge_weight = spmm.csr_sddmm(colptr, rowind, grad_out, feat)
+        #
+        return None, None, None, None, grad_feat, torch.ones(edge_weight_csr.shape) # should be grad_edge_weight
 
 
 # import numpy as np 
