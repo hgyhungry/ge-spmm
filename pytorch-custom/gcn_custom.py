@@ -18,7 +18,8 @@ args = parser.parse_args()
 
 dataset = 'PubMed'
 path = osp.join(osp.dirname(osp.realpath('.')), '..', 'data', dataset)
-dataset = Planetoid(path, dataset, T.NormalizeFeatures())
+# dataset = Planetoid(path, dataset, T.NormalizeFeatures())
+dataset=Planetoid("/home/henrychang/ge-spmm_test/ge-spmm/data/PubMed",dataset,transform=T.NormalizeFeatures())
 data = dataset[0]
 
 import scipy.sparse as scpsp
@@ -39,9 +40,12 @@ def proc(add_self_loop=True):
     adj = adj.tocsr()
     g['colptr'] = torch.tensor(adj.indptr).to(device)
     g['rowind'] = torch.tensor(adj.indices).to(device)
+    g['value_csr']=torch.tensor(adj.data).to(device).float()
     adj = adj.tocsc()
     g['rowptr'] = torch.tensor(adj.indptr).to(device)
     g['colind'] = torch.tensor(adj.indices).to(device)
+    g['value_csc']=torch.tensor(adj.data).to(device).float()
+    
     
     return g 
 
@@ -71,10 +75,10 @@ class Net(torch.nn.Module):
         self.non_reg_params = self.conv2.parameters()
 
     def forward(self):
-        x, rowptr, colind, colptr, rowind = data.x, g['rowptr'], g['colind'], g['colptr'], g['rowind']
-        x = F.relu(self.conv1(x, rowptr, colind, colptr, rowind))
+        x, rowptr, colind, colptr, rowind, edge_weight_csr, edge_weight_csc= data.x, g['rowptr'], g['colind'], g['colptr'], g['rowind'], g['value_csr'], g["value_csc"]
+        x = F.relu(self.conv1(x, rowptr, colind, colptr, rowind, edge_weight_csr))
         x = F.dropout(x, training=self.training)
-        x = self.conv2(x, rowptr, colind, colptr, rowind)
+        x = self.conv2(x, rowptr, colind, colptr, rowind, edge_weight_csr)
         return F.log_softmax(x, dim=1)
         
 

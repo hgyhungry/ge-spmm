@@ -3,21 +3,27 @@ from torch.utils.cpp_extension import load
 from torch.nn import Parameter, init
 import torch.nn.functional as F 
 
-spmm = load(name='spmm', sources=['spmm.cpp', 'spmm_kernel.cu'], verbose=True)
+spmm = load(name='spmm', sources=['spmm.cpp', 'spmm.cu'], verbose=True)
 
 class SPMMFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, rowptr, colind, colptr, rowind, feat):
-        out = spmm.csr_spmm(rowptr, colind, feat)
+    def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr):
+        out = spmm.csr_spmm (rowptr, colind, edge_weight_csr, feat)
 
-        ctx.backward_csc = (colptr, rowind)
+        ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr)
         return out
     
     @staticmethod
     def backward(ctx, grad_out):
-        colptr, rowind = ctx.backward_csc
-        grad_feat = spmm.csr_spmm(colptr, rowind, grad_out)
-        return None, None, None, None, grad_feat
+            colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
+            
+            edge_weight_csc = spmm.value_csr_to_csc(edge_weight_csr)
+            
+            grad_feat = spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
+            
+            grad_edge_weight = spmm.csr_sddmm(colptr, rowind, grad_out, feat)
+            
+            return None, None, None, None, grad_feat, grad_edge_weight
 
 
 # import numpy as np 
@@ -92,7 +98,7 @@ class GCNConv(torch.nn.Module):
     def out_deg_sqrt(indptr):
         return (1 / torch.sqrt((indptr[1:]-indptr[:-1]).float())).unsqueeze(dim=1)
 
-    def forward(self, x, rowptr, colind, colptr, rowind):
+    def forward(self, x, rowptr, colind, colptr, rowind, edge_weight_csr):
         """"""
         x = torch.matmul(x, self.weight)
         # if self.cached and self.cached_result is not None:
@@ -124,7 +130,7 @@ class GCNConv(torch.nn.Module):
         in_deg_norm, out_deg_norm = self.cached_result
         if self.normalize:
             x = x*out_deg_norm
-        aggr_out = SPMMFunction.apply(rowptr, colind, colptr, rowind, x)
+        aggr_out = SPMMFunction.apply(rowptr, colind, colptr, rowind, x, edge_weight_csr)
         if self.normalize:
             aggr_out = aggr_out*in_deg_norm
         if self.bias is not None:
