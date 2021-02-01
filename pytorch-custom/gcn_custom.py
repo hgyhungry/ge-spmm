@@ -131,8 +131,6 @@ def test():
 
 best_val_acc = test_acc = 0
 #warmup 
-test()
-print('hhhh')
 
 with torch.autograd.profiler.profile(use_cuda=True) as prof:
     for epoch in range(1, 201):
