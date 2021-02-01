@@ -17,7 +17,7 @@ class SPMMFunction(torch.autograd.Function):
     def backward(ctx, grad_out):
             colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
             
-            edge_weight_csc = spmm.value_csr_to_csc(edge_weight_csr)
+            # edge_weight_csc = spmm.value_csr_to_csc(edge_weight_csr)
             
             grad_feat = spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
             
