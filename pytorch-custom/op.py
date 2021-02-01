@@ -15,15 +15,16 @@ class SPMMFunction(torch.autograd.Function):
     
     @staticmethod
     def backward(ctx, grad_out):
-            colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
-            
-            edge_weight_csc = spmm.value_csr_to_csc(edge_weight_csr)
-            
-            grad_feat = spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
-            
-            grad_edge_weight = spmm.csr_sddmm(colptr, rowind, grad_out, feat)
-            
-            return None, None, None, None, grad_feat, grad_edge_weight
+        print("we don't support backward\n")
+        colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
+        
+        edge_weight_csc = None #should be spmm.value_csr_to_csc(edge_weight_csr)
+        
+        grad_feat = None #should be spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
+        
+        grad_edge_weight = None #should be spmm.csr_sddmm(colptr, rowind, grad_out, feat)
+        
+        return None, None, None, None, grad_feat, grad_edge_weight
 
 
 # import numpy as np 
