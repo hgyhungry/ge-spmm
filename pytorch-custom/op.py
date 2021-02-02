@@ -3,28 +3,37 @@ from torch.utils.cpp_extension import load
 from torch.nn import Parameter, init
 import torch.nn.functional as F 
 
-spmm = load(name='spmm', sources=['spmm.cpp', 'spmm.cu'], verbose=True)
+spmm = load(name='spmm', sources=['spmm.cpp', 'spmm_kernel.cu'], verbose=True)
 
 class SPMMFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr):
-        out = spmm.csr_spmm (rowptr, colind, edge_weight_csr, feat)
+    def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr=None, edge_weight_csc=None):
+        if not edge_weight_csr:
+            out = spmm.csr_spmm_no_edge_value(rowptr, colind, edge_weight_csr, feat)
+        else:
+            out = spmm.csr_spmm (rowptr, colind, edge_weight_csr, feat)
 
-        ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr)
+        ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr, edge_weight_csc)
         return out
     
     @staticmethod
     def backward(ctx, grad_out):
-        print("we don't support backward\n")
-        colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
-        
-        edge_weight_csc = None #should be spmm.value_csr_to_csc(edge_weight_csr)
-        
-        grad_feat = None #should be spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
-        
-        grad_edge_weight = None #should be spmm.csr_sddmm(colptr, rowind, grad_out, feat)
-        
-        return None, None, None, None, grad_feat, grad_edge_weight
+        colptr, rowind, feat, edge_weight_csr, edge_weight_csc = ctx.backward_csc 
+        if edge_weight_csr:
+            if not edge_weight_csc:
+                raise RuntimeError("Backward of SPMM require edge values in both src-first and dst-first order, \
+                    and do not support gradients for edge values. \
+                        Call with SPMMFunction.apply(rowptr, colind, colptr, rowind, in_feat, edge_value_row_first, edge_value_col_first"
+                        )
+            else:
+                grad_feat = spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
+                grad_edge_weight = None 
+                print("[I] Treat edge weight as no_grad.")
+        else:
+            grad_feat = spmm.csr_spmm_no_edge_value(colptr, rowind, grad_out)
+            grad_edge_weight = None 
+
+        return None, None, None, None, grad_feat, grad_edge_weight, None
 
 
 # import numpy as np 
@@ -99,7 +108,7 @@ class GCNConv(torch.nn.Module):
     def out_deg_sqrt(indptr):
         return (1 / torch.sqrt((indptr[1:]-indptr[:-1]).float())).unsqueeze(dim=1)
 
-    def forward(self, x, rowptr, colind, colptr, rowind, edge_weight_csr):
+    def forward(self, x, rowptr, colind, colptr, rowind, edge_weight_csr=None, edge_weight_csc=None):
         """"""
         x = torch.matmul(x, self.weight)
         # if self.cached and self.cached_result is not None:
@@ -131,7 +140,7 @@ class GCNConv(torch.nn.Module):
         in_deg_norm, out_deg_norm = self.cached_result
         if self.normalize:
             x = x*out_deg_norm
-        aggr_out = SPMMFunction.apply(rowptr, colind, colptr, rowind, x, edge_weight_csr)
+        aggr_out = SPMMFunction.apply(rowptr, colind, colptr, rowind, x, edge_weight_csr, edge_weight_csc)
         if self.normalize:
             aggr_out = aggr_out*in_deg_norm
         if self.bias is not None:
