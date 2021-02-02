@@ -19,7 +19,6 @@ args = parser.parse_args()
 dataset = 'PubMed'
 path = osp.join(osp.dirname(osp.realpath('.')), '..', 'data', dataset)
 dataset = Planetoid(path, dataset, transform=T.NormalizeFeatures())
-# dataset=Planetoid("/home/henrychang/ge-spmm_test/ge-spmm/data/PubMed",dataset,transform=T.NormalizeFeatures())
 data = dataset[0]
 
 import scipy.sparse as scpsp
