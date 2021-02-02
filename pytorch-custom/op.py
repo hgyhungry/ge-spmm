@@ -10,9 +10,7 @@ class SPMMFunction(torch.autograd.Function):
     def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr=None, edge_weight_csc=None):
         if edge_weight_csr==None:
             out = spmm.csr_spmm_no_edge_value(rowptr, colind, feat)
-            print(1)
         else:
-            print(2)
             out = spmm.csr_spmm (rowptr, colind, edge_weight_csr, feat)
 
         ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr, edge_weight_csc)
@@ -22,7 +20,6 @@ class SPMMFunction(torch.autograd.Function):
     def backward(ctx, grad_out):
         colptr, rowind, feat, edge_weight_csr, edge_weight_csc = ctx.backward_csc 
         if edge_weight_csr!=None:
-            print(3)
             if edge_weight_csc==None:
                 raise RuntimeError("Backward of SPMM require edge values in both src-first and dst-first order, \
                     and do not support gradients for edge values. \
@@ -35,7 +32,6 @@ class SPMMFunction(torch.autograd.Function):
         else:
             grad_feat = spmm.csr_spmm_no_edge_value(colptr, rowind, grad_out)
             grad_edge_weight = None 
-            print(4)
 
         return None, None, None, None, grad_feat, grad_edge_weight, None
 
