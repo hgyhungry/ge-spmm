@@ -187,21 +187,21 @@ torch::Tensor spmm_cuda_no_edge_value(
         const int row_per_block = 128/k;
         const int n_block = (m+row_per_block-1)/row_per_block;
         topoSimpleSPMMKernel<<< dim3(n_block,1,1),dim3(k, row_per_block, 1)>>>(
-            m, k, rowptr.data<int>(), colind.data<int>(), dense.data<float>(), out.data<float>());
+            m, k, rowptr.data_ptr<int>(), colind.data_ptr<int>(), dense.data_ptr<float>(), out.data_ptr<float>());
         return out;
     }
     if (k<64) {
         const int tile_k = (k+31)/32;
         const int n_block = (m+3)/4;
         topoCacheSPMMKernel<<< dim3(n_block,tile_k,1), dim3(32,4,1), 128*sizeof(int)>>>(
-            m, k, rowptr.data<int>(), colind.data<int>(), dense.data<float>(), out.data<float>());
+            m, k, rowptr.data_ptr<int>(), colind.data_ptr<int>(), dense.data_ptr<float>(), out.data_ptr<float>());
         return out;
     }
     else {
         const int tile_k = (k+63)/64;
         const int n_block = (m+8-1)/8;
         topoCacheCoarsenSPMMKernel<<< dim3(n_block,tile_k,1), dim3(32,8,1), 8*32*sizeof(int)>>>(
-            m, k, rowptr.data<int>(), colind.data<int>(), dense.data<float>(), out.data<float>());
+            m, k, rowptr.data_ptr<int>(), colind.data_ptr<int>(), dense.data_ptr<float>(), out.data_ptr<float>());
         return out;
     }
 }
@@ -438,21 +438,21 @@ torch::Tensor spmm_cuda(
         const int row_per_block = 128/k;
         const int n_block = (m+row_per_block-1)/row_per_block;
         spmm_test0<<<dim3(n_block,1,1),dim3(k, row_per_block, 1)>>>(
-            m, k, rowptr.data<int>(), colind.data<int>(), values.data<float>(), dense.data<float>(), out.data<float>());
+            m, k, rowptr.data_ptr<int>(), colind.data_ptr<int>(), values.data_ptr<float>(), dense.data_ptr<float>(), out.data_ptr<float>());
         return out;
     }
     if (k<64) {
         const int tile_k = (k+31)/32;
         const int n_block = (m+4-1)/4;
         spmm_test1<<<dim3(n_block, tile_k, 1), dim3(32, 4, 1), 32*4*(sizeof(int)+sizeof(float))>>> (
-            m, k, rowptr.data<int>(), colind.data<int>(), values.data<float>(), dense.data<float>(), out.data<float>());
+            m, k, rowptr.data_ptr<int>(), colind.data_ptr<int>(), values.data_ptr<float>(), dense.data_ptr<float>(), out.data_ptr<float>());
         return out;
     }
     else {
         const int tile_k = (k+63)/64;
         const int n_block = (m+8-1)/8;
         spmm_test2<<<dim3(n_block, tile_k, 1), dim3(32, 8, 1), 32*8*(sizeof(int)+sizeof(float))>>> (
-            m, k, rowptr.data<int>(), colind.data<int>(), values.data<float>(), dense.data<float>(), out.data<float>());        
+            m, k, rowptr.data_ptr<int>(), colind.data_ptr<int>(), values.data_ptr<float>(), dense.data_ptr<float>(), out.data_ptr<float>());        
         return out;
     }
 }
