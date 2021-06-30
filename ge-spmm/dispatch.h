@@ -25,6 +25,18 @@ void gespmmCsrSpMM( const SpMatCsrDescr_t spmatA,
                     gespmmAlg_t alg
                     );
 
+
+//
+// most-simple algorithm selector
+// 
+gespmmAlg_t gespmmAlgSel(int dense_ncol) 
+{
+    if (dense_ncol >= 32)    return GESPMM_ALG_ROWCACHING_ROWBALANCE;
+    else if (dense_ncol > 4) return GESPMM_ALG_SEQREDUCE_ROWBALANCE;
+    else                     return GESPMM_ALG_PARREDUCE_ROWBALANCE;
+}
+
+
 //
 // top-level functin
 //
@@ -58,14 +70,4 @@ void gespmmCsrSpMM( const SpMatCsrDescr_t spmatA,
             std::cerr << "Unknown algorithm\n";
             exit(EXIT_FAILURE);
     }
-}
-
-//
-// most-simple algorithm selector
-// 
-gespmmAlg_t gespmmAlgSel(int dense_ncol) 
-{
-    if (dense_ncol >= 32)    return GESPMM_ALG_ROWCACHING_ROWBALANCE;
-    else if (dense_ncol > 4) return GESPMM_ALG_SEQREDUCE_ROWBALANCE;
-    else                     return GESPMM_ALG_PARREDUCE_ROWBALANCE;
 }
