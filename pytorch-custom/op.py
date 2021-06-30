@@ -7,33 +7,23 @@ spmm = load(name='spmm', sources=['spmm.cpp', 'spmm_kernel.cu'], verbose=True)
 
 class SPMMFunction(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr=None, edge_weight_csc=None):
-        if edge_weight_csr==None:
-            out = spmm.csr_spmm_no_edge_value(rowptr, colind, feat)
-        else:
-            out = spmm.csr_spmm (rowptr, colind, edge_weight_csr, feat)
+    def forward(ctx, rowptr, colind, colptr, rowind, feat, edge_weight_csr):
+        out = spmm.csr_spmm(rowptr, colind, feat) #should be (rowptr, colind, edge_weight_csr, grad_out)
 
-        ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr, edge_weight_csc)
+        ctx.backward_csc = (colptr, rowind, feat, edge_weight_csr)
         return out
     
     @staticmethod
     def backward(ctx, grad_out):
-        colptr, rowind, feat, edge_weight_csr, edge_weight_csc = ctx.backward_csc 
-        if edge_weight_csr!=None:
-            if edge_weight_csc==None:
-                raise RuntimeError("Backward of SPMM require edge values in both src-first and dst-first order, \
-                    and do not support gradients for edge values. \
-                        Call with SPMMFunction.apply(rowptr, colind, colptr, rowind, in_feat, edge_value_row_first, edge_value_col_first"
-                        )
-            else:
-                grad_feat = spmm.csr_spmm(colptr, rowind, edge_weight_csc, grad_out)
-                grad_edge_weight = None 
-                print("[I] Treat edge weight as no_grad.")
-        else:
-            grad_feat = spmm.csr_spmm_no_edge_value(colptr, rowind, grad_out)
-            grad_edge_weight = None 
-
-        return None, None, None, None, grad_feat, grad_edge_weight, None
+        colptr, rowind, feat, edge_weight_csr = ctx.backward_csc 
+        #
+        # edge_weight_csc = spmm.value_csr_to_csc(edge_weight_csr)
+        #
+        grad_feat = spmm.csr_spmm(colptr, rowind, grad_out) #should be (colptr, rowind, edge_weight_csc, grad_out)
+        #
+        # grad_edge_weight = spmm.csr_sddmm(colptr, rowind, grad_out, feat)
+        #
+        return None, None, None, None, grad_feat, torch.ones(edge_weight_csr.shape) # should be grad_edge_weight
 
 
 # import numpy as np 
