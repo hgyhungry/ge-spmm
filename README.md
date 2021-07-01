@@ -2,11 +2,41 @@
 
 Guyue Huang\*, Guohao Dai, Yu Wang and Huazhong Yang
 
-Tsinghua University
-
 \*hguyue1@outlook.com
 
-Accepeted to SC2020.
+# News
+* The code for SC20 publication AE is archived at branch sc20_AE.
+* The code for ACM SRC publication ( upgraded SpMM kernel) is released as part of the [dgSPARSE](https://github.com/dgSPARSE/dgSPARSE-Library) project. Code link: https://github.com/dgSPARSE/dgSPARSE-Library/tree/main/src/ge-spmm
+* Future updates will be released in [dgSPARSE](https://github.com/dgSPARSE/dgSPARSE-Library) project. 
+
+# Collaborative Projects
+* [dgSPARSE](https://github.com/dgSPARSE/dgSPARSE-Library) (Deep Graph Sparse Library) collects GPU sparse routines for HPC and GNN systems, developed in [NICS-EFC](http://nicsefc.ee.tsinghua.edu.cn) research lab
+    * SpMM
+    * SDDMM
+    * Edge softmax
+    * ...
+* [CogDL](https://github.com/THUDM/cogdl) is a flexible and efficient graph-learning framework that uses GE-SpMM to accelerate GNN algorithms. 
+
+
+```
+@inproceedings{9355302,  
+    author={Huang, Guyue and Dai, Guohao and Wang, Yu and Yang, Huazhong},  
+    booktitle={SC20: International Conference for High Performance Computing, Networking, Storage and Analysis},   
+    title={GE-SpMM: General-Purpose Sparse Matrix-Matrix Multiplication on GPUs for Graph Neural Networks},   
+    year={2020},  
+    pages={1-12},  
+    doi={10.1109/SC41405.2020.00076}
+}
+
+@misc{huang2021efficient,
+      title={Efficient Sparse Matrix Kernels based on Adaptive Workload-Balancing and Parallel-Reduction}, 
+      author={Guyue Huang and Guohao Dai and Yu Wang and Yufei Ding and Yuan Xie},
+      year={2021},
+      eprint={2106.16064},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC}
+}
+```
 
 ## Abstract
 **GE-SpMM** is a fast CSR-based CUDA kernel of sparse-dense matrix multiplication (SpMM), designed to accelerate GNN applications.
