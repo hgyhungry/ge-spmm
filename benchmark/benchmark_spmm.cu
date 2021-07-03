@@ -14,7 +14,7 @@
 #include <vector>     
 #include "common_util.h"      // read_mtx
 #include "cusparse_helper.h"
-#include "../ge-spmm/dispatch.h"
+#include "ge-spmm/gespmm.h"
 
 int main(int argc, const char** argv) {
 
